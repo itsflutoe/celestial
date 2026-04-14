@@ -1,0 +1,38 @@
+/* Premium Certificate Button */
+.btn-certificate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px;
+  margin-top: 15px;
+  background: rgba(96, 165, 250, 0.1); /* Subtle blue tint */
+  border: 1px solid var(--primary);
+  border-radius: 12px;
+  color: var(--primary) !important;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.btn-certificate:hover {
+  background: var(--primary);
+  color: #fff !important;
+  box-shadow: 0 0 20px rgba(96, 165, 250, 0.4);
+}
+
+.btn-certificate span {
+  font-size: 1.2rem;
+}
+
+/* Fix for the Link Card alignment */
+#link-area .card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
