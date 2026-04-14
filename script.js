@@ -1,4 +1,4 @@
-/** * CELESTIAL V13 - FULL DATASET & ARCHIVE ENGINE **/
+/** * CELESTIAL V13 - FINAL SYNCED ENGINE **/
 const GOOGLE_APP_URL = "https://script.google.com/macros/s/AKfycbzxFxXgN9-bwZ8Obd1pdjdakb46QB7U9nz8lVcFB6W4BENo2kENfGG1xpwNMjV95rphmQ/exec";
 const STAR_DATA_URL = "https://raw.githubusercontent.com/ofrohn/d3-celestial/master/data/stars.6.json";
 
@@ -21,7 +21,16 @@ async function loadData() {
     ]);
     
     const registry = await rResp.json();
-    registry.forEach(r => globalRegistry[r.StarID] = r);
+    
+    // FIX: Clean up accidental spaces in Google Sheet headers (like "Message ")
+    globalRegistry = {};
+    registry.forEach(r => {
+        const cleanEntry = {};
+        Object.keys(r).forEach(key => {
+            cleanEntry[key.trim()] = r[key];
+        });
+        if(cleanEntry.StarID) globalRegistry[cleanEntry.StarID] = cleanEntry;
+    });
     
     const starsData = await sResp.json();
     stars = starsData.features.map(f => ({
@@ -39,27 +48,37 @@ async function loadData() {
     if(statusDot) statusDot.classList.add('online');
     if(statusText) statusText.innerText = "Connected to Observatory";
 
+    // URL Check for Shared Stars
     const sharedId = new URLSearchParams(window.location.search).get('star');
-    if(sharedId && globalRegistry[sharedId]) renderArchiveView(sharedId);
-    else renderBuilder();
+    if(sharedId && globalRegistry[sharedId]) {
+        renderArchiveView(sharedId);
+    } else {
+        renderBuilder();
+    }
 
   } catch(e) { 
+    console.error("Sync Error:", e);
     if(statusText) statusText.innerText = "Connection Failed";
     renderBuilder(); 
   }
 }
 
-// ADDED: Global hook for the Explorer
+// --- 2. FULL DATA ARCHIVE VIEW ---
 window.renderArchiveView = function(starId) {
     const star = stars.find(s => s.id === starId);
     if(!star) return renderBuilder();
     
     const claim = globalRegistry[starId];
+    
+    // Use the cleaned keys
+    const recipient = claim.RecipientName || "Unknown";
+    const legacyMessage = claim.Message || "No message recorded.";
+
     const starHue = stellarPalette[Math.abs(Math.floor(star.mag)) % stellarPalette.length];
     const dist = Math.pow(10, (star.mag + 5) / 5).toFixed(0);
     const lightYearOrigin = new Date().getFullYear() - dist;
     
-    window.currentStarData = { star: star, name: claim.RecipientName, msg: claim.Message };
+    window.currentStarData = { star: star, name: recipient, msg: legacyMessage };
 
     document.getElementById("main-content").innerHTML = `
         <div class="archive-header" style="text-align:center; margin-bottom:30px; animation: fadeIn 1.5s;">
@@ -74,12 +93,12 @@ window.renderArchiveView = function(starId) {
             </div>
 
             <p class="label" style="color:var(--primary); letter-spacing:3px;">Star named after</p>
-            <h2 style="font-size:2.5rem; color:#fff; margin: 10px 0; font-family:'Playfair Display', serif;">${claim.RecipientName}</h2>
+            <h2 style="font-size:2.5rem; color:#fff; margin: 10px 0; font-family:'Playfair Display', serif;">${recipient}</h2>
             <div style="font-size:1.1rem; color:${starHue}; letter-spacing:2px; font-weight:600; margin-bottom:20px; text-transform:uppercase;">${star.name}</div>
             <p style="font-size:0.75rem; color:#64748b; margin-bottom:25px;">Light from this body left its source in <b>${lightYearOrigin}</b>.</p>
             
             <div style="background:rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); padding:30px; border-radius:20px; margin-bottom:30px;">
-                <p style="font-style:italic; color:#94a3b8; line-height:1.8; font-size:1.05rem;">"${claim.Message}"</p>
+                <p style="font-style:italic; color:#94a3b8; line-height:1.8; font-size:1.05rem;">"${legacyMessage}"</p>
             </div>
 
             <div class="data-grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom:30px;">
@@ -119,6 +138,7 @@ function renderBuilder() {
 // --- 4. BACKGROUND WARP ---
 function initBackground() {
   canvas = document.getElementById('starCanvas');
+  if(!canvas) return;
   ctx = canvas.getContext('2d');
   resize();
   window.addEventListener('resize', resize);
@@ -200,11 +220,9 @@ async function submitClaim() {
   } catch(e) { alert("Error."); if(btn) btn.disabled = false; }
 }
 
-// ADDED: onclick for the 3D Explorer
 function updateCounter() {
   const count = Object.keys(globalRegistry).length;
   const container = document.querySelector('.counter');
-  
   if(container) {
       container.innerHTML = `
         <button onclick="window.open3DExplorer()" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px 15px; border-radius:30px; cursor:pointer; font-family:'Inter', sans-serif; font-size:0.8rem; backdrop-filter:blur(5px); display:flex; align-items:center;">
