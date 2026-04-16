@@ -1,5 +1,5 @@
 /** * CELESTIAL V13 - FINAL SYNCED ENGINE **/
-const GOOGLE_APP_URL = "https://script.google.com/macros/s/AKfycbzZ6mSSdHlDYljsoIKdTi3ZiP9kPJTsyn8pRYYnNIct0VoFfpVCmhXc_Lu-pf5gI1OPrA/exec";
+const GOOGLE_APP_URL = "https://script.google.com/macros/s/AKfycbwLBmybJjrf3ZrdxXSrEFE02l_udEfaL9qM5Yq44pw2eD_nNZ_uZ80XkRvPAy2aQErOKQ/exec";
 const STAR_DATA_URL = "https://raw.githubusercontent.com/ofrohn/d3-celestial/master/data/stars.6.json";
 
 let stars = [], globalRegistry = {}, currentStar = null;
